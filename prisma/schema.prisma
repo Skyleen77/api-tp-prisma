@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model aff {
+  NP        String    @db.Char(3)
+  NC        Int
+  ANNEE     Int
+  chercheur chercheur @relation(fields: [NC], references: [NC])
+  projet    projet    @relation(fields: [NP], references: [NP])
+
+  @@id([NP, NC, ANNEE])
+  @@index([NC], map: "AFF_CHERCHEUR_FK")
+  @@index([NP], map: "index1")
+}
+
+model chercheur {
+  NC     Int     @id
+  NOM    String  @db.VarChar(20)
+  PRENOM String? @db.VarChar(20)
+  NE     Int
+  equipe equipe? @relation(fields: [NE], references: [NE])
+  affs   aff[]
+
+  @@index([NE], map: "CHERCHEUR_EQUIPE_FK")
+}
+
+model equipe {
+  NE        Int         @id
+  NOM       String      @db.VarChar(50)
+  projet    projet[]
+  chercheur chercheur[]
+
+  @@index([NE], map: "EQUIPE_NOM_IDX")
+}
+
+model projet {
+  NP     String   @id @db.Char(3)
+  NOM    String   @db.VarChar(50)
+  BUDGET Decimal? @db.Decimal(10, 2)
+  NE     Int
+  equipe equipe   @relation(fields: [NE], references: [NE], onDelete: NoAction, onUpdate: NoAction, map: "PROJET_EQUIPE_FK")
+  affs   aff[]
+
+  @@index([NE], map: "PROJET_EQUIPE_FK")
+}
